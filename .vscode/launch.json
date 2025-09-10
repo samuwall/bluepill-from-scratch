@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "cortex-debug-jlink",
+            "cwd": "${fileDirname}/..",
+            "executable": "${fileDirname}/../build/${fileBasenameNoExtension}.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "servertype": "jlink",
+            "device": "STM32F103C8",
+            "interface": "swd",
+            "svdPath": "${workspaceFolder}/STM32F103.svd",
+            "rttConfig": {
+                "enabled": true,
+                "address": "auto",
+                "decoders": [
+                    {
+                        "port": 0,
+                        "type": "console",
+                        
+                    }
+                ]
+            },
+            "preLaunchTask": "build_debug",
+        }
+    ]
+}
