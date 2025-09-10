@@ -37,26 +37,21 @@ const struct usb_device_descriptor device_descriptor = {
     .bNumConfigurations = 1,
 };
 
-/* PS1.11 p.860 claims interrupt/bulk transactions
- * must be multiples of 4 bytes and 32-bit aligned
- */
 struct hid_mouse_report {
     uint8_t buttons;  
     int16_t x;
     int16_t y;
     int16_t wheel;
-    uint8_t padding;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed));
 
-/* byte  0:
- *   REPORT_COUNT (2), REPORT_SIZE(1)  = button 1,2  = 2 bits
- *   REPORT_COUNT (1), REPORT_SIZE(6)  = padding     = 6 bits
+/* 7 byte report:
+ * byte 0:
+ *   REPORT_COUNT (2), REPORT_SIZE(1) = button 1,2 = 2 bits
+ *   REPORT_COUNT (1), REPORT_SIZE(6) = padding = 6 bits
  * bytes 1-6: 
  *   REPORT_COUNT (3), REPORT_SIZE(16) = X, Y, Wheel = 3 * 2 bytes
- * byte  7:
- *   REPORT_COUNT (1), REPORT_SIZE(8)  = padding     = 8 bits
  */
-const uint8_t hid_mouse_report_descriptor[] = {
+static const uint8_t hid_mouse_report_descriptor[] = {
     0x05, 0x01,         /* USAGE_PAGE (Generic Desktop)         */
     0x09, 0x02,         /* USAGE (Mouse)                        */
     0xa1, 0x01,         /* COLLECTION (Application)             */
@@ -82,9 +77,6 @@ const uint8_t hid_mouse_report_descriptor[] = {
     0x95, 0x03,         /*     REPORT_COUNT (3)                 */
     0x75, 0x10,         /*     REPORT_SIZE (16)                 */
     0x81, 0x06,         /*     INPUT (Data,Var,Rel)             */
-    0x95, 0x01,         /*     REPORT_COUNT (1)                 */
-    0x75, 0x08,         /*     REPORT_SIZE (8)                  */
-    0x81, 0x01,         /*     INPUT (Cnst,Ary,Abs)             */
     0xc0,               /*   END_COLLECTION                     */
     0x09, 0x3c,         /*   USAGE (Motion Wakeup)              */
     0xc0                /* END_COLLECTION                       */
@@ -173,10 +165,10 @@ const struct usb_string_descriptor str_product = {
 };
 
 const struct usb_string_descriptor str_serial = {
-    .bLength            = 12,
+    .bLength            = 10,
     .bDescriptorType    = USB_DT_STRING,
     .wString            = {
-        '6','9','4','2','0'
+        '1', '3', '3', '7'
     }
 };
 
@@ -270,6 +262,7 @@ static void send_hid_report(usb_device *dev, uint8_t ep) {
 
     report.x = dir;
     usb_ep_write_packet(dev, 0x81, &report, sizeof(report));
+
 }
 
 static void hid_set_configuration(usb_device *dev, uint16_t wValue) {
@@ -290,6 +283,7 @@ static void hid_set_configuration(usb_device *dev, uint16_t wValue) {
 
     /* fill ep1 tx buffer with first report; start chain of CTR IN events */
     send_hid_report(dev, 0x81);
+    
 }
 
 int main(void) {
@@ -310,4 +304,3 @@ int main(void) {
     }
 
 }
-
