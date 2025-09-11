@@ -3,7 +3,7 @@
 
 ### tl;dr
 
-full source [here](https://github.com/samuwall).
+full source [here](https://github.com/samuwall/bluepill-from-scratch/tree/main/01.5-blinkasm).
 
 assemble:
 ```txt
@@ -224,8 +224,6 @@ and flash:
 ./flash.exp blink.elf
 ```
 
-<br>
-
 ![](res/blinkasm.gif)
 
 Heck yea.
@@ -306,8 +304,6 @@ If you're curious, the following tab dives into the disassemblies to show how th
 > 
 > </details>
 > 
-> <br>
-> 
 > <details>
 > 
 > <summary>blink.s disassembly</summary>
@@ -373,7 +369,6 @@ If you're curious, the following tab dives into the disassemblies to show how th
 > 
 > </details>
 > 
-> <br>
 > 
 > First of all, while looping they used 2 `nop` instructions to our 0, which means they're starting from a 4-byte deficit and need to otherwise save 8 bytes.
 > 
@@ -485,8 +480,6 @@ If you're curious, the following tab dives into the disassemblies to show how th
 > ```
 > </details>
 > 
-> <br>
-> 
 > ```txt
 > [samu@yoga 01-blinkasm]$ arm-none-eabi-size blink.elf
 >    text	   data	    bss	    dec	    hex	filename
@@ -494,8 +487,6 @@ If you're curious, the following tab dives into the disassemblies to show how th
 > ```
 > 
 > </details>
-
-<br>
 
 If we wanted to make our program and linker script as minimal as possible, we can forego the separate input section for the vector table and rely on defining it at the top of our assembly code. 
 
@@ -566,8 +557,6 @@ An absolutely minimal script/assembly combination would look like the following:
 >     b    main_loop          @ repeat
 > ```
 > </details>
-
-<br>
 
 That about does it.
 

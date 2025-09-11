@@ -2,7 +2,7 @@
 
 ### tl;dr
 
-full source [here](https://github.com/samuwall).
+full source [here](https://github.com/samuwall/bluepill-from-scratch/tree/main/01-blink).
 
 in this program, we enable the GPIO Port C peripheral, configure PC13 for output, and write 1 or 0 to PC13 with delays in between in order to blink the LED connected to PC13.
 
@@ -44,7 +44,7 @@ We need the bluepill schematic simply to see which GPIO pin is connected to our 
 
 Here's the part of the bluepill schematic we're interested in, showing the LED:
 
-![alt text](res/led.png)
+![](res/led.png)
 
 PC13 is our pin. We can see that the positive side of the LED is connected to Vdd/Vcc (high), so if we could just pull PC13 low (0V / GND), we would complete the circuit for this LED and cause current to flow -- from the supply (_Vdd_), through the LED, through the current-limiting resistor, through PC13 and the MCU, and back to the supply (_GND_). We do this simply by outputting `0` on PC13. Outputting `0` on a pin effectively shorts the pin to the MCU's GND, which explains how it's able to sink current. We'll look at the mechanism behind this later.
 
@@ -52,7 +52,7 @@ PC13 is our pin. We can see that the positive side of the LED is connected to Vd
 
 Now the reference manual. Let's just start with Section 3, as it's the first information we get about our microcontroller. The very first figure already helps us a lot in our goal of writing to PC13.
 
-![alt text](res/fig1.png)
+![](res/fig1.png)
 
 It looks complicated at first glance, but following the arrows, we can see that the Cortex-M3 accesses the AHB through the Bus Matrix, that the AHB is connected to APB1 and APB2, and that GPIOC _(our peripheral of interest)_ is under APB2. We can also see something called RCC communicating with the AHB.
 
@@ -60,7 +60,7 @@ It looks complicated at first glance, but following the arrows, we can see that 
 
 If we look under "AHB/APB bridges (APB)" on the next page, we get another key piece of information for this MCU:
 
-![alt text](res/apb.png)
+![](res/apb.png)
 
 This tells us that a peripheral needs a clock signal in order to come to life, and that this RCC thing controls where the clock goes, diverting it to whichever peripheral we want to use and gating it from those not in use in order to save power.
 
@@ -68,15 +68,15 @@ Thus, if we assume that `APB2ENR` stands for `APB2 Enable Register`, it looks li
 
 The next paragraph tells us that peripherals and their registers (like `RCC_APB2ENR`) are accessed through normal memory addresses, which is pretty convenient.
 
-![alt text](res/memorg.png)
+![](res/memorg.png)
 
 And the next page shows the start/end address of every peripheral. We need the start address for RCC and GPIOC.
 
-![alt text](res/table3.png)
+![](res/table3.png)
 
 RCC is at `0x4002 1000`, connected to the AHB.
 
-![alt text](res/table3cont.png)
+![](res/table3cont.png)
 
 GPIOC is at `0x4001 1000`, connected to APB2.
 
@@ -88,21 +88,21 @@ Looking through the registers, we see that they're all 32-bits wide, and that ev
 
 We can skim through all of these registers with all of their bitfield definitions and see that none of them other than `RCC_APB2ENR` seem to do anything that we need to worry about, so we can be pretty confident that we aren't missing anything. 
 
-![alt text](res/737.png)
+![](res/737.png)
 
 Here's the subsection for the `RCC_APB2ENR` register. It tells us its address offset within the RCC peripheral, its reset value, how it can be accessed, and gives a note that reaffirms what we learned about having to first enable peripherals by enabling their clock. Next is the register's bitfield diagram.
 
-![alt text](res/apb2enr.png)
+![](res/apb2enr.png)
 
 It neatly shows what every bit in the register maps to. Every bitfield is explained and its possible values defined below these diagrams. Bit 4 labeled `IOPCEN` might be what we're looking for.
 
-![alt text](res/iopcen.png)
+![](res/iopcen.png)
 
 Looks like all we need to do is set this bit to `1`. 
 
 Now we can move on to the GPIOC peripheral itself.
 
-![alt text](res/gpio.png)
+![](res/gpio.png)
 
 Looking at the functional description, we have two configuration registers, two data registers, two set/reset registers, and a locking register. It also lists every possible mode with which a GPIO pin can be configured. We can see that pin configuration is done through `GPIOx_CRL` and `GPIOx_CRH`. 
 
@@ -112,13 +112,13 @@ The input modes are for reading high/low logic levels driven by external compone
 
 Subsection 9.1.8: `Output configuration` describes the difference:
 
-![alt text](res/918.png)
+![](res/918.png)
 
 It explains that both modes have the same behavior when writing a `0` to the output data register, as they both activate something called an `N-MOS`, but that the modes behave differently when a `1` is written. Open-drain mode leaves the port in "Hi-Z", while push-pull mode activates something called a `P-MOS`.
 
 We can look at the GPIO block diagram for some intuition here.
 
-![alt text](res/fig13gpio.png)
+![](res/fig13gpio.png)
 
 `N-MOS` and `P-MOS` are transistors, they control electrical connections and are themselves controllable by the voltage present on their "gate" terminal. They function like a controllable analog switch. Their symbols help visualize this. The "gate" terminal on the left's voltage is controlled by the output control, and you can imagine that based on this gate voltage the gate either closes (activates) and shorts together the top/bottom terminals, or opens (deactivates) and disconnects the top/bottom terminals. It isn't the gate voltage by itself that controls these transistors though, it's the difference between the gate voltage and the "source" voltage `Vgs` (`Vg - Vs`). Current flows or doesn't flow between the source pin and the drain pin depending on the value of Vgs. Three pins: gate, source, drain.
 
@@ -148,7 +148,7 @@ We'll go with open-drain.
 
 Now onto the registers. The `GPIOx_CRL` register covers pins 0-7 while `GPIOx_CRH` covers pins 8-15. Since we're trying to configure pin 13 of port C we'll use `GPIOC_CRH`.
 
-![alt text](res/crh.png)
+![](res/crh.png)
 
 We need to set the `MODE13` and `CNF13` bitfields.
 
@@ -158,7 +158,7 @@ Looking at the binary for each bitfield value, we want to set `MODE13` to `0b10`
 
 Once the pin is configured, the value in `GPIOC_ODR` controls the output:
 
-![alt text](res/odr.png)
+![](res/odr.png)
 
 We turn the LED on and off simply by writing `1` or `0` to bit `13`.
 
@@ -323,9 +323,9 @@ We're using GNU tools, which means we'll be using the `ld` linker.
 
 The official GNU `ld` documentation is great, and we'll look to it here to get all of the information we need regarding linking and writing our linker script [[11]](https://sourceware.org/binutils/docs/ld/Overview.html).
 
-![alt text](res/ld1.png)
+![](res/ld1.png)
 
-![alt text](res/ld3.png)
+![](res/ld3.png)
 
 As stated, linking combines separately compiled input object files (.o, .a) and constructs an output object file (executable) from them, mapping input file data to addresses in the output file as instructed by the linker script.
 
@@ -333,7 +333,7 @@ In regular hosted C programming, linking is guided by a default linker script th
 
 Section 3.1 neatly explains the idea of sections, loadable vs allocatable section contents, VMA vs LMA, and symbols.
 
-![alt text](res/ld31.png)
+![](res/ld31.png)
 
 Basically, the input file data we discussed before is made up of sections like `.text`, `.bss`, and `.data`. `.text` contains our program code, which we'll want to place in flash so that the program is not lost when power is lost. `.bss` contains uninitialized or zeroed global/static-storage variables, which we'll want to place in RAM so that they're easily accessible. `.data` contains global/static-storage variables which have a non-zero intial value, wherein the initial value is stored in flash and then copied over to RAM. All of this is defined by the ARM EABI (Embedded Application Binary Interface) we briefly mentioned in `00-setup`. ABIs like this standardize object files so that object files from different compilers and even different languages can be linked together.
 
@@ -341,7 +341,7 @@ Most sections contain and load data (loadable + allocatable). Some don't load da
 
 If you're feeling overwhelmed, it might be nice to see an example of a valid linker script, shown with a detailed explanation in section 3.3.
 
-![alt text](res/ld33.png)
+![](res/ld33.png)
 
 Quite simple, and considering our blinky program doesn't consist of any global or static-storage variables (`.data`, `.bss`), our linker script will be even simpler. All we need to do is use the `SECTIONS` command, set the location counter to our flash start address, define the `.text` output section at this address, and match any `.vectors` input sections to it followed by any `.text` input sections.
 
@@ -534,7 +534,7 @@ However, this is only if `-nostdlib` is specified without `-ffreestanding`. With
 
 To add to the confusion, there's also the fact that C23 actually added these functions (and others) from `string.h` to the list of required library facilities for freestanding implementations, which might suggest that `-ffreestanding` should still allow these functions to be emitted. Well, that's not what we're seeing in practice at the moment, so let's just move on.
 
-> Upon further review, there are times that GCC emits these `mem*` calls even with `-ffreestanding`. We got this behavior with `09-i2c`, when it transformed the initialization of an array into a `memset`. This is in line with the GCC documentation, but I don't know why `-ffreestanding` by itself was enough to stop the generation of the `memcpy` in `02-struct` but not in `09-i2c`. Luckily I'm not the only one somewhat confused with this behavior [[x]](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56888)[[x]](https://f.osdev.org/viewtopic.php?t=33589)[[x]](https://stackoverflow.com/questions/67210527/how-to-provide-an-implementation-of-memcpy)[[x]](https://cs107e.github.io/guides/gcc/)[[x]](https://stackoverflow.com/questions/6410595/getting-gcc-to-compile-without-inserting-call-to-memcpy/9426766#9426766). I guess GCC has a good reason to make these `mem*` implementation mandatory in all environments, but I wish they weren't. We'll solve this moving forward by providing these implementations whenever GCC wants them, and marking them as `used` when we do, so that LTO doesn't throw them away.
+> Upon further review, there are times that GCC emits these `mem*` calls even with `-ffreestanding`. We got this behavior with `09-i2c`, when it transformed the initialization of an array into a `memset`. This is in line with the GCC documentation, but I don't know why `-ffreestanding` by itself was enough to stop the generation of the `memcpy` in `02-struct` but not in `09-i2c`. Luckily I'm not the only one somewhat confused with this behavior [[x]](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56888)[[x]](https://f.osdev.org/viewtopic.php?t=33589)[[x]](https://stackoverflow.com/questions/67210527/how-to-provide-an-implementation-of-memcpy)[[x]](https://cs107e.github.io/guides/gcc/)[[x]](https://stackoverflow.com/questions/6410595/getting-gcc-to-compile-without-inserting-call-to-memcpy/9426766#9426766). I guess GCC has good reason to make these `mem*` implementations mandatory in all environments, but I wish they weren't. We'll solve this moving forward by manually providing these implementations whenever GCC wants them, and marking them as `used` when we do, so that LTO doesn't throw them away.
 
 Also in the description for `-nostdlib` is a suggestion to separately link with `libgcc`, which `-nostdlib` would otherwise disable. `libgcc` provides stuff like software floating point implementations. In keeping with our "from-scratch" and "no external code" mindset, we won't link with `libgcc`, and hopefully we won't do anything weird to trigger any `libgcc` facilities. If we ever do, the compilation errors will make it clear what happened.
 

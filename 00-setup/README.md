@@ -3,7 +3,7 @@
 
 ### tl;dr
 
-full source [here](https://github.com/samuwall).
+full source [here](https://github.com/samuwall/bluepill-from-scratch/tree/main/00-setup).
 
 this repository uses the STM32F103C8T6 "Blue Pill", but you can use any STM32F103 board.
 
