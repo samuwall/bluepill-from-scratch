@@ -147,6 +147,4 @@ If you're interested in the Visual Studio Code + Cortex-Debug route, see the fol
 >
 > </details>
 
-<br>
-
 Don't worry about any of the code or commands used, the next programs will explain everything in detail.

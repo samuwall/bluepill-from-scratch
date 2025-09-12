@@ -34,9 +34,9 @@ If we can figure out which GPIO pin is connected to the LED, and how to actually
 
 For the blinking part, we really only need 2 separate sources of information:
 
-1.) The Reference Manual for our STM32F103 microcontroller (RM0008). [[1]]()
+1.) The Reference Manual for our STM32F103 microcontroller (RM0008). [[1]](https://www.st.com/en/microcontrollers-microprocessors/stm32f103/documentation.html#)
 
-2.) The Bluepill schematic. [[2]]()
+2.) The Bluepill schematic. [[2]](https://stm32-base.org/assets/pdf/boards/original-schematic-STM32F103C8T6-Blue_Pill.pdf)
 
 For STM32 products, the reference manual is addressed towards application developers (us), and tells us everything there is to know about our microcontroller's architecture, memory organization, and peripherals. It's our one-stop-shop for everything specific to this STM32F103. For this program, we will only need to look at the sections _Memory and Bus Architecture_, _Reset and Clock Control_, and _GPIO_. These are sections 3, 7, and 9 respectively.
 
@@ -108,7 +108,7 @@ Looking at the functional description, we have two configuration registers, two 
 
 
 
-The input modes are for reading high/low logic levels driven by external components. We want to write high/low to our pin with current sourcing/sinking capability, not to simply sample its value, so we know that we definitely need to be outputting on our pin. Now we have to decide between `Output open-drain` and `Output push-pull`, first by figuring out what these two terms mean.
+The input modes are for reading high/low logic levels driven by external components. We want to write high/low to our pin with current sourcing/sinking capability, not to simply sample its value, so we know that we definitely need to be outputting on our pin. Now we have to decide between `Output open-drain` and `Output push-pull`, by first figuring out what these two terms mean.
 
 Subsection 9.1.8: `Output configuration` describes the difference:
 
@@ -189,9 +189,9 @@ Now we'll start with our first line of code. As in normal desktop C programming,
 #include <stdint.h>
 ```
 
-In embedded, knowing exactly how many bits we're working with is crucial, so don't want any of the ambiguity that comes with the default data types such as `int` and `unsigned int`. Instead, we use the exact bit width types provided by `stdint.h`.
+In embedded, knowing exactly how many bits we're working with is crucial, so we don't want any of the ambiguity that comes with the default data types such as `int` and `unsigned int`. Instead, we use the exact bit width types provided by `stdint.h`.
 
-> If you're wondering how we're able to use `stdint.h` without linking `libc` or any other C library, it's because the C standard requires a minimal subset of library headers to be available even for freestanding [[3]]() programs, where minimal library facilities are expected/required to be available. For C99 [[4]](), this subset includes <float.h>, <iso646.h>, <limits.h>, <stdarg.h>, <stdbool.h>, <stddef.h>, and <stdint.h>. This is opposed to hosted [[5]]() programs, where the full C standard library is expected to be implemented. If you've installed `arm-none-eabi-gcc` on Linux, you can see that these header files come with the compiler and are found at `/usr/lib/gcc/arm-none-eabi/14.2.0/include/`.
+> If you're wondering how we're able to use `stdint.h` without linking `libc` or any other C library, it's because the C standard requires a minimal subset of library headers to be available even for freestanding [[3]](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf#chapter.4) programs, where minimal library facilities are expected/required to be available. For C99 [[4]](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf), this subset includes <float.h>, <iso646.h>, <limits.h>, <stdarg.h>, <stdbool.h>, <stddef.h>, and <stdint.h>. This is opposed to hosted [[5]](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf#subsection.5.1.2) programs, where the full C standard library is expected to be implemented. If you've installed `arm-none-eabi-gcc` on Linux, you can see that these header files come with the compiler and are found at `/usr/lib/gcc/arm-none-eabi/14.2.0/include/`.
 
 Next we'll use macros to define the register addresses of `RCC_APB2ENR`, `GPIOC_CRH` and `GPIOC_ODR`.
 
