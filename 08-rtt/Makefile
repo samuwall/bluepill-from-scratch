@@ -47,7 +47,7 @@ LIST := $(BUILDDIR)/$(PROJECT_NAME).list
 
 all: $(ELF)
 
-dbg: OFLAGS = -O0 -g3 -flto
+dbg: OFLAGS = -O0 -g3 -ffunction-sections -fdata-sections -Wl,--gc-sections
 dbg: clean $(ELF)
 
 rel: OFLAGS = -Os -flto

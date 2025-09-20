@@ -21,7 +21,6 @@ CFLAGS += $(INCLUDES)
 CFLAGS += -std=gnu23
 CFLAGS += -mcpu=cortex-m3 -ffreestanding -nostdlib
 CFLAGS += -Wall -Wextra
-
 OFLAGS ?= -Og -g3 -flto
 CFLAGS += $(OFLAGS)
 
@@ -39,7 +38,7 @@ LIST := $(BUILDDIR)/$(PROJECT_NAME).list
 
 all: $(ELF)
 
-dbg: OFLAGS = -O0 -g3 -flto
+dbg: OFLAGS = -O0 -g3 -ffunction-sections -fdata-sections -Wl,--gc-sections
 dbg: clean $(ELF)
 
 rel: OFLAGS = -Os -flto
